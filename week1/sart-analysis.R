@@ -45,7 +45,7 @@ library(stringr)
 library(data.table)
 
 # Read the trace file into memory
-trace <- file(paste0(data_path, "sart-trace.txt"), "r")
+trace <- file(paste0("/Users/juliaboers/output/", "sart-trace.txt"), "r")
 lines <- readLines(trace)
 
 participant <- 0L
@@ -54,17 +54,33 @@ n <- length(lines)
 activations <- data.table(participant = rep(0L, n), time = rep(0, n), activation = rep(0, n)) # Preallocate a data.table where we can store ATTEND activation values
 idx <- 0L
 
+x <- 0
 
 for(i in 1:length(lines)) {
 
   # Read a single line
   line <- lines[i]
   
+
+  if(str_detect(line, "Chunk ATTEND has an activation of:")) {
+    y <- str_extract(line, "[:digit:][:punct:].")
+    activations$participant[x] = participant
+    activations$activation[x] <- y
+    x <- x+1
+    print(x)
+  }
+  
   # Detect the start of a new model run
   if(str_detect(line, "Run \\d+")) {
     participant <- participant + 1L
     print(participant)
   }
+  
+}
+
+
+
+
   
   # Check whether the line contains the activation of the ATTEND chunk, and then store the value
   # Hints:
@@ -73,7 +89,7 @@ for(i in 1:length(lines)) {
   #   - you will also need to keep track of the time, which is given at the start of many (but not all!) lines in the trace file. 
   #   - you can add a line to the activations data.table using set(activations, idx, j = 1:3, value = list(participant, time, activation)). See ?set for more information.
 
-}
+
 
 
 # You should now have a data.table containing each observation of the activation of ATTEND for all 25 model runs, along with the time of the observation.
