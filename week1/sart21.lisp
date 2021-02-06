@@ -19,8 +19,8 @@
 (defvar *target-trials* 180) ; number of target trials
 (defvar *non-target-trials* 20) ; number of non-target trials
 
-(defvar *output-directory* "~/output/") ; location where output files are stored
-(defvar *trace-to-file-only* nil) ; whether the model trace should only be saved to file and not appear in terminal
+(defvar *output-directory* "~/Uni/year4/cmp/week1/results") ; location where output files are stored
+(defvar *trace-to-file-only* t) ; whether the model trace should only be saved to file and not appear in terminal
 (defvar *trace-file-name* "sart-trace") ; name of file in which the trace is stored
 
 (defvar *terminal-stream* *standard-output*) ; necessary for stream management
@@ -310,7 +310,7 @@
     step      make-response
   =retrieval>
     isa       srmapping
-    stimulus  =letter
+    stimulus  "O"
     hand      =hand
   ?manual>
     state     free
@@ -326,6 +326,23 @@
     isa       goal        ; get ready for new trial
   - state     nil
 )
+
+(p do-not-respond-if-Q
+  =goal>
+    isa       subgoal
+    step      make-response
+  =retrieval>
+    isa       srmapping
+    stimulus  "Q"
+    hand      nil
+  ==>
+  -goal>
+  -visual-location>
+  -visual>
+  +retrieval>
+    isa     goal
+  - state   nil
+) 
 
 (goal-focus startgoal)
 
