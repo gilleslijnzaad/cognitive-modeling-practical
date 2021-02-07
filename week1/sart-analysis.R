@@ -54,7 +54,9 @@ n <- length(lines)
 activations <- data.table(participant = rep(0L, n), time = rep(0, n), activation = rep(0, n)) # Preallocate a data.table where we can store ATTEND activation values
 idx <- 0L
 
-x <- 0
+actpersec <- 1
+activationtotal <- 0
+time <- 0
 
 for(i in 1:length(lines)) {
 
@@ -63,17 +65,19 @@ for(i in 1:length(lines)) {
   
 
   if(str_detect(line, "Chunk ATTEND has an activation of:")) {
-    y <- str_extract(line, "[:digit:][:punct:].")
-    activations$participant[x] = participant
-    activations$activation[x] <- y
-    x <- x+1
-    print(x)
-  }
-  
-  # Detect the start of a new model run
-  if(str_detect(line, "Run \\d+")) {
-    participant <- participant + 1L
-    print(participant)
+    actpersec <- actpersec+1
+    if(str_extract(lines[i-1], "\\d+") == time + 1) {
+      print("new second")
+      meanact <- activationtotal/actpersec
+      print(meanact)
+      activations$activation[time] <- meanact
+      activations$time[time] <- time
+      time <- time + 1
+      activationtotal <- 1
+      actpersec <- 0
+    }
+    y <- str_extract(line, "[:digit:][:punct:]\\d+")
+    activationtotal <- activationtotal + as.numeric(y)
   }
   
 }
