@@ -28,7 +28,16 @@ for (i in 1:length(behfiles)) {
 
 
 # Plot a histogram of response time for participant 1
-
+library(tidyverse)
+file <- "~/Uni/year4/cmp/cognitive-modelling-practical/week1/results/dat1_noNIL.csv"
+data <- read.csv(file, sep = ",", strip.white=TRUE, colClasses = c('factor', 'numeric', 'factor', 'factor', 'numeric'))
+ggplot(data, aes(x=rt)) + geom_histogram(fill='darkgreen') +
+  scale_x_continuous(breaks=seq(0.38,0.56,0.04)) +
+  labs(title = "Response times of participant 1", x = "Response time (s)", y = "Frequency") +
+  theme_bw() + 
+  theme(plot.title=element_text(size=20, face="bold")) +
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=18,face="bold"))
 
 # What is the mean response time and standard error? Aggregate within and then across participants.
 
@@ -39,20 +48,17 @@ for (i in 1:length(behfiles)) {
 ## Question 3: Analysing the model trace ##
 ##---------------------------------------##
 
-## The easiest way to do this is to read the trace file line by line wihle keeping track of the state of the model
+## The easiest way to do this is to read the trace file line by line while keeping track of the state of the model
 
 library(stringr)
 library(data.table)
 
 # Read the trace file into memory
-trace <- file(paste0("/Users/juliaboers/output/", "sart-trace.txt"), "r")
+trace <- file(paste0("~/Uni/year4/cmp/cognitive-modelling-practical/week1/", "sart-trace.txt"), "r")
 lines <- readLines(trace)
 
-participant <- 0L
 time <- 1
-n <- length(lines)
-activations <- data.table(participant = rep(0L, n), time = rep(0, n), activation = rep(0, n)) # Preallocate a data.table where we can store ATTEND activation values
-idx <- 0L
+activations <- data.table(time = rep(0, 500), activation = rep(0, 500)) # Preallocate a data.table where we can store ATTEND activation values
 
 actpersec <- 1
 activationtotal <- 0
@@ -63,17 +69,14 @@ for(i in 1:length(lines)) {
   # Read a single line
   line <- lines[i]
   
-
   if(str_detect(line, "Chunk ATTEND has an activation of:")) {
     actpersec <- actpersec+1
     if(str_extract(lines[i-1], "\\d+") == time + 1) {
-      print("new second")
       meanact <- activationtotal/actpersec
-      print(meanact)
-      activations$activation[time] <- meanact
       activations$time[time] <- time
+      activations$activation[time] <- meanact
       time <- time + 1
-      activationtotal <- 1
+      activationtotal <- 0
       actpersec <- 0
     }
     y <- str_extract(line, "[:digit:][:punct:]\\d+")
@@ -82,9 +85,16 @@ for(i in 1:length(lines)) {
   
 }
 
-
-
-
+plot <- ggplot(activations, aes(x=time, y=activation))
+plot + geom_line(color='darkgreen') + 
+  xlim(1,500) + 
+  ylim(4.5,6) + 
+  ggtitle("Activation of chunk ATTEND over time") +
+  labs(x = "Time (s)", y = "Mean activation") +
+  theme_bw() + 
+  theme(plot.title=element_text(size=20, face="bold")) +
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=18,face="bold"))
   
   # Check whether the line contains the activation of the ATTEND chunk, and then store the value
   # Hints:
