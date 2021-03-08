@@ -222,6 +222,7 @@
   (identify isa subgoal step identify)
   (get-response isa subgoal step get-response)
   (make-response isa subgoal step make-response)
+  (save-stimulus isa subgoal step save-stimulus)
 )
 
 (set-base-levels
@@ -287,6 +288,28 @@
   - state     nil
 )
 
+( p detect-first-stimulus
+  ?goal>
+    buffer      empty
+  =retrieval>
+    isa         goal
+    state       attend
+  =visual-location> ;something has appeared on the screen
+  ?visual>
+    state       free
+    buffer      empty
+==>
+  +visual>
+    isa         move-attention
+    screen-pos  =visual-location
+  +goal>
+    isa         subgoal
+    step        save-stimulus
+  +retrieval>
+    isa     goal
+  - state   nil
+)
+
 (p detect-stimulus
   ;haal uit imaginal buffer
   ;retrieve response
@@ -298,19 +321,22 @@
   =visual-location> ;something has appeared on the screen
   =imaginal>
     stimulus    =stim
+  ?visual>
+    state       free
 ==>
+  =retrieval>
+    state       nil ; clear retrieval buffer without strengthening chunk
+  -retrieval>
   +retrieval> ;makes retrieval request for stimulus in imaginal
     isa          srmapping
     stimulus      =stim
   +goal>
     isa         subgoal
     step        make-response
-  =retrieval>
-    state       nil ; clear retrieval buffer without strengthening chunk
-  -retrieval>
   -imaginal>
-
-  ;add chance to mind-wander
+  +visual>
+    isa         move-attention
+    screen-pos  =visual-location
 )
 
 ;respond
@@ -325,8 +351,6 @@
     hand      =hand
   ?manual>
     state     free
-
-  ?visual>
 ==>
   +manual>
     isa       punch
@@ -335,11 +359,6 @@
   +goal>
     isa         subgoal
     step        save-stimulus
-  +visual>
-    isa         move-attention
-    screen-pos  =visual-location
-
-  ;add chance to mind-wander
 )
 
 (p do-not-respond-if-Q
@@ -350,20 +369,13 @@
     isa       srmapping
     stimulus  "Q"
     hand      nil
-  ?visual>
-    state     free
   ==>
-  +visual>
-    isa         move-attention
-    screen-pos  =visual-location
   +goal>
     isa         subgoal
     step        save-stimulus
   +retrieval>
     isa     goal
   - state   nil
-
-  ;add chance to mind-wander
 )
 
 (p save-imaginal
