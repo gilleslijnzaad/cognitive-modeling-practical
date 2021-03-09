@@ -19,9 +19,9 @@
 (defvar *target-trials* 180) ; number of target trials
 (defvar *non-target-trials* 20) ; number of non-target trials
 
-(defvar *output-directory* "C:/Users/shild/Documents/AI/Jaar 2/Blok 3/Cognitive Modelling Practical/week 3/output") ; location where output files are stored
+(defvar *output-directory* "~/output/") ; location where output files are stored
 (defvar *trace-to-file-only* t) ; whether the model trace should only be saved to file and not appear in terminal
-(defvar *trace-file-name* "sart-trace") ; name of file in which the trace is stored
+(defvar *trace-file-name* "sart-trace-high") ; name of file in which the trace is stored
 
 (defvar *terminal-stream* *standard-output*) ; necessary for stream management
 
@@ -288,7 +288,7 @@
   - state     nil
 )
 
-( p detect-first-stimulus
+(p detect-first-stimulus
   ?goal>
     buffer      empty
   =retrieval>
@@ -298,16 +298,18 @@
   ?visual>
     state       free
     buffer      empty
+  ?imaginal>
+    buffer      empty
 ==>
+  =retrieval>
+    state       nil ; clear retrieval buffer without strengthening chunk
+  -retrieval>
   +visual>
     isa         move-attention
     screen-pos  =visual-location
   +goal>
     isa         subgoal
     step        save-stimulus
-  +retrieval>
-    isa     goal
-  - state   nil
 )
 
 (p detect-stimulus
@@ -319,24 +321,44 @@
     isa         goal
     state       attend
   =visual-location> ;something has appeared on the screen
-  =imaginal>
-    stimulus    =stim
   ?visual>
     state       free
+  ?imaginal>
+  - buffer      empty
 ==>
   =retrieval>
     state       nil ; clear retrieval buffer without strengthening chunk
   -retrieval>
-  +retrieval> ;makes retrieval request for stimulus in imaginal
-    isa          srmapping
-    stimulus      =stim
   +goal>
     isa         subgoal
-    step        make-response
-  -imaginal>
+    step        get-response
   +visual>
     isa         move-attention
     screen-pos  =visual-location
+)
+
+(p retrieve-response
+  =goal>
+    isa         subgoal 
+    step        get-response
+  ?retrieval>
+    state       free
+  =visual>
+    isa         text
+    value       =letter
+  ?visual>
+    state       free 
+  =imaginal>
+    stimulus    =stim
+==>
+  -goal>
+  +goal>
+    isa         subgoal
+    step        make-response
+  +retrieval> ;makes retrieval request for stimulus in imaginal
+    isa         srmapping
+    stimulus    =stim
+  -imaginal>
 )
 
 ;respond
@@ -357,8 +379,8 @@
     hand      =hand
     finger    index
   +goal>
-    isa         subgoal
-    step        save-stimulus
+    isa       subgoal
+    step      save-stimulus
 )
 
 (p do-not-respond-if-Q
@@ -371,11 +393,8 @@
     hand      nil
   ==>
   +goal>
-    isa         subgoal
-    step        save-stimulus
-  +retrieval>
-    isa     goal
-  - state   nil
+    isa       subgoal
+    step      save-stimulus
 )
 
 (p save-imaginal
@@ -391,18 +410,22 @@
   ?retrieval>
     state     free
   ?imaginal>
-    buffer      empty
-    state       free 
+    buffer    empty
+    state     free 
 ==>
   -goal>
   +visual>
     isa       clear-scene-change
-  =imaginal>
+  +imaginal>
     isa       previous
     stimulus  =letter  
+  +retrieval>
+    isa       goal
+  - state     nil
+  -visual>
+  -visual-location>
 )
-
 
 (goal-focus startgoal)
 
-)
+) 
