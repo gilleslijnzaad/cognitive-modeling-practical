@@ -1,12 +1,12 @@
 
 # Read in the data
-data_path <- "~/output/" # Change to the location of your output folder
+data_path <- "~/Uni/year4/cmp/cognitive-modelling-practical/week5/data/low-load/" # Change to the location of your output folder
 
 library(stringr)
 library(data.table)
 
 # Read the trace file into memory
-trace <- file(paste0(data_path, "sart-trace-high.txt"), "r")
+trace <- file(paste0(data_path, "sart-trace.txt"), "r")
 lines <- readLines(trace)
 
 activations_at <- data.table(time = rep(0, 12500), activation = rep(0, 12500)) # Preallocate a data.table where we can store ATTEND activation values
@@ -87,11 +87,13 @@ for (i in 1:500) {
   activations$a[500+i] <- act_total_wa / 25
 }
 
+library(tidyverse)
+
 ggplot(activations, aes(x=time, y=a)) +
   geom_smooth(aes(color=type)) +
   xlim(1,500) + 
-  ylim(5,5.5) + 
-  scale_color_manual(values = c("cornflowerblue", "darkgreen")) +
+  ylim(4.8,5.3) + 
+  scale_color_manual(values = c("darkgoldenrod1", "brown1")) +
   ggtitle("Activation of chunk ATTEND and chunk WANDER over time") +
   labs(x = "Time (s)", y = "Mean activation", color="Chunk") +
   theme_bw() + 
